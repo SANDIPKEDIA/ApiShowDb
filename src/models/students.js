@@ -7,7 +7,7 @@ const studentSchema = new mongoose.Schema({
         required:true,
         minlength:3
     },
-    /*
+    
     email : {
         type:String,
         required:true,
@@ -18,6 +18,7 @@ const studentSchema = new mongoose.Schema({
             }
         }
     },
+    
     phone : {
         type:Number,
         required:true,
@@ -29,7 +30,7 @@ const studentSchema = new mongoose.Schema({
         required:true,
         
     },
-    */
+    
     Age : {
         type:Number,
         required:true,
