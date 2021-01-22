@@ -47,34 +47,13 @@ const studentSchema = new mongoose.Schema({
         type:String,
         required:true,
         minlength:3
-    },
-    tokens:[{
-        token: {
-            type:String,
-            required:true,
-        }
-    }]
-
+    }
+   
 
 }) 
 
-//generating Token
-
-studentSchema.statics.generateAuthToken = async function(){ 
-    try {
-        console.log(this._id);
-        const token = await jwt.sign({_id:this._id.toString()},"mynameissandipkediadeveloper");
-        this.tokens = this.tokens.concat({token:token})//key and value both are same so u can just write here concat({token})
-        await this.save();
-        return token;
-
-    } catch (e) {
-        res.send("errorr"+e)
-        console.log("errrooer"+e);
-    }
 
 
-}
 
 
 

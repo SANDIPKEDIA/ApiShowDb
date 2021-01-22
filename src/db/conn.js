@@ -4,6 +4,7 @@ mongoose.connect("mongodb://localhost:27017/students-api",{ // created a dbasica
     useNewUrlParser:true,
     useUnifiedTopology:true,
     useFindAndModify : false
+
 }).then(() => {                 
     console.log("Connection is successfull");
 }).catch((e) =>{

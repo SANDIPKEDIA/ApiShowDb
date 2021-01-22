@@ -3,11 +3,9 @@ require("./db/conn");
 const Student = require("./models/students");
 const upload = require("express-fileupload");
 const jwt = require("jsonwebtoken");
-
 const app = express(); // call express
 const port = process.env.PORT || 3000; //assign new port number
-
-app.use(express.json());
+app.use(express.json()); //middleware of our application hum postman se JSon fomat mein data bhejrhe hein so ye directly JSOn format read nahi karpata so humlog ye middleware use karte hein
 
 //when client requesting server response with that parameteres(req,res)
 // app.post("/students",(req,res) => { //create new student with post method(new student's registration)
@@ -39,100 +37,174 @@ app.post("/students", async (req, res) => {
 });
 
 // 2: Get ALL
-//read the data by get method
+//read the data 
 app.get("/students", async (req, res) => {
   try {
     const studentsData = await Student.find()
-    // .count()
-    // .limit(parseInt(req.params.limit))
-    // .skip(parseInt(req.params.skip))
-    // .sort({ createdAt: -1 })
+    .limit(parseInt(req.params.limit))
     res.send(studentsData);
   } catch (e) {
     res.send(e);
   }
 });
 
-//find individual Student-details using student id
-
-app.get("/students/:id", async (req, res) => {
+//limit
+app.get("/students/limit=:limit", async (req, res) => {
   try {
-    const _id = req.params.id;
-    const studentData = await Student.findById(_id);
+    const limitStudent = await Student.find()
+    .limit(parseInt(req.params.limit))
+    res.send(limitStudent );
+    // console.log(limitStudent );
+  } catch (e) {
+    res.send(e);
+  }
+});
 
-    //    const studentData = await Student.findOne({ age: 23 })
+//count
+app.get("/students/countDocuments", async (req, res) => {
+  try {
+    const countStudent = await Student.count({});
+    res.json(countStudent);
+    // console.log(limitStudent );
+  } catch (e) {
+    res.send(e);
+  }
+});
+//without async await count method
+// app.get("/students/countDocuments", function (req, res) {
+//   Student.count( {}, function(err, result){
+//       if(err){
+//           res.send(err)
+//       }else{
+//           res.json(result)
+//       }
+//  })
+// })
 
+
+
+
+
+//skip
+app.get("/students/skip=:skip", async (req, res) => {
+  try {
+    const skipStudent = await Student.find()
+    .skip(parseInt(req.params.skip))
+    res.send(skipStudent);
+    // console.log(limitStudent );
+  } catch (e) {
+    res.send(e);
+  }
+});
+
+//sort api
+app.get("/students/sort", async (req, res) => {
+  try {
+    const sortStudent = await Student.find().sort('Name')
+    res.send(sortStudent);
+    // console.log(sortStudent);
+     } catch (e) {
+    res.send(e);
+  }
+});
+
+
+//find individual Student-detail with Age
+app.get("/students/Age=:Age", async (req, res) => {
+  try {
+    const Age = req.params.Age;
+    // const studentData = await Student.findById(_id);
+    const studentData = await Student.findOne({ Age })
     if (!studentData) {
-      return res.status(404).send();
+      return res.status(404).send("No Result");
     } else {
       res.send(studentData);
     }
   } catch (e) {
-    res.status(404).send("Please enter a Valid Id");
+    res.status(404).send("No Result");
+    // res.status(404).send(e);
+  }
+});
+//find individual Student-detail with Name
+app.get("/students/Name=:Name", async (req, res) => {
+  try {
+    const Name = req.params.Name;
+    // const studentData = await Student.findById(_id);
+    const NameData = await Student.findOne({Name} )
+    if (!NameData) {
+      return res.status(404).send(error);
+    } else {
+      res.send(NameData);
+    }
+  } catch (e) {
+    res.status(404).send(e);
     // res.status(404).send(e);
   }
 });
 
-// 3: update One record
 
-app.patch("/students/:id", async (req, res) => {
+
+
+// update with updateOne method
+app.put("/students/update/:id", async (req, res) => {
   try {
-    const _id = req.params.id;
-    const updateStudents = await Student.findByIdAndUpdate(_id, req.body, {
-      new: true,
-      multi: true,
-    });
+     const _id = req.params.id;
+    const updateStudents = await Student.updateOne(
+      {
+       _id:_id,  // match
+      },
+      {
+        $set: req.body,  // update
+      },
+      {
+        multi: true, // for multiple updations
+      }
+    );
     res.send(updateStudents);
-    // console.log(upadteStudents);
+//     // console.log(upadteStudents);
   } catch (e) {
-    req.status(500).send(e);
+    res.send(e);
   }
 });
 
-
-// another wala 
+// update by id
 
 // app.put("/students/:id", async (req, res) => {
 //   try {
 //     const _id = req.params.id;
-//     const updateStudents = await Student.update(
-//       {
-//         _id: _id,  // match
-//       },
-//       {
-//         $set: req.body,  // update
-//       },
-//       {
-//         multi: true, // for multiple updations
-//       }
-//     );
+//     const updateStudents = await Student.findByIdAndUpdate(_id, req.body, {
+//       new: true,
+//       multi: true,
+//     });
 //     res.send(updateStudents);
 //     // console.log(upadteStudents);
 //   } catch (e) {
-//     req.status(500).send(e);
+//     res.status(500).send(e);
 //   }
 // });
 
-// updateOne
+
 
 //Delete Student details
 app.delete("/students/:id", async (req, res) => {
   try {
     // const id = req.params.id //we can also skip this line by write in findByIdAndDelete(req.params.id);
     // const deleteStudent = await Student.findByIdAndDelete(req.params.id);
-    const deleteStudent = await Student.remove({ _id: req.params.id });
-
+    const deleteStudent = await Student.remove(
+      { _id: req.params.id },
+      {
+             multi: true, 
+      }
+      
+      );
     if (!deleteStudent) {
       return res.status(404).send();
     } else {
-      res.send(deleteStudent);
+      res.send(deleteStudent + "Successfully Deleted");
     }
   } catch (e) {
     res.status(404).send("User Not Found");
-  }
-
-
-  
+  }  
 });
 
 //Search Api with Name
@@ -141,26 +213,23 @@ app.get("/students/search/:q", async (req, res) => {
   try {
 
     const searchQuery = req.params.q;
-
-    let query = {
+    const query = {
         $and: [
           {
             $or: [
               {
                 Name: { $regex: `.*${searchQuery}.*`, $options: "i" },
               },
-              {
+               {
                 Age: { $regex: `.*${searchQuery}.*`, $options: "i" },
-              },
+               },
               {
                 email: { $regex: `.*${searchQuery}.*`, $options: "i" },
-              },
+               },
             ],
           }
         ],
       };
-
-    
     const searchStudent = await Student.find(query);
     res.send(searchStudent);
   } catch (e) {
@@ -171,8 +240,9 @@ app.get("/students/search/:q", async (req, res) => {
 
 
 //Jwt token
-
 // basic part:create a jwt token of id
+
+
 // const createToken = function async(){
 //     const token = jwt.sign({_id:'6001a6980dc9fc1ebcaecf25'},"mynameissandipkediadeveloper");
 //     console.log("token is: "+token);
@@ -196,31 +266,20 @@ app.get("/students/search/:q", async (req, res) => {
 //     }
 // })
 
-// app.post("/students/token/:id", async (req, res) => {
-//   try {
-//     const _id = req.params.id;
-//     console.log(_id);
-//     const token = await Student.generateAuthToken();
-//     console.log(token);
-//     const reg = await Student.save();
-//   } catch (e) {
-//     res.send(e);
-//   }
-// });
+
+
+
+
+
 
 //upload file
 app.use(upload());
-
 app.get("/", (req, res) => {
 //   res.sendFile(__dirname + "/fileupload.html"); 
   res.sendFile(__dirname + "/public/fileupload.html"); 
-  
-  //sending the file with help of __dirname
+    //sending the file with help of __dirname
   // __dirname is an environment variable that tells you the absolute path of the directory containing the currently executing file.
 });
-
-
-
 app.post("/", (req, res) => {
   if (req.files) {
     console.log(req.files);
@@ -236,6 +295,9 @@ app.post("/", (req, res) => {
     });
   }
 });
+
+
+
 
 app.listen(port, () => {
   console.log(`connection is setup at ${port}`);
@@ -254,40 +316,35 @@ app.listen(port, () => {
 // Tasks
 
 
-// GET ONE APi  //  should work with find method
+
 
 // update one  // chekout updateOne method as well
 // update multiple // try another methord
-
-
 // delete one // try with .remove() method
 // delete multiple
-
 // search  // api retest kr lena
-// filter   // find() query for other fields
-
-
 
 
 // -----------------------------
-
 // Done
-
-
-
 // create APi
 // Get Aall APi
 // auth with jwt
 // file upload
-
 // sort
 // limit
 // skip 
 // count
-
-
 // .remove({
 //     age:23
 // }, {
-//             multi: true, // for multiple updations
-//           })
+//        multi: true, // for multiple updations
+//      })
+// GET ONE APi  //  should work with find method
+// filter   // find() query for other fields
+
+//question
+//delete multiple
+//update multiple
+//sort count
+//search
